@@ -11,12 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
+import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 
@@ -64,7 +62,7 @@ public class BillService {
         bill.setCreationDate(finalDate);
         bill.setRecurringDate(date.getDate());
         int startOfMonthIndex = finalDate.indexOf("-");
-
+        bill.setUpcomingPaymentDate(setUpcomingPaymentDate(bill));
 
         // need to set upcomingPaymentDate
         //bill.setUpcomingPaymentDate();
@@ -83,6 +81,26 @@ public class BillService {
         verifyBill(billId,"Bill id does not exist");
         billRepository.deleteById(billId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+    public String setUpcomingPaymentDate(Bill bill){
+        Date date = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+
+        int day = bill.getRecurringDate();
+
+        int realMonth = calendar.get(Calendar.MONTH) + 1;
+        int month = realMonth + 1;
+        int realDay = calendar.get(Calendar.DAY_OF_MONTH);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-"+month+"-" + day);
+        if (realDay > day ){
+            month = realMonth+1;
+            if (month > 12){
+                month = 0;
+            }
+        }
+        sdf.format(date);
+        return sdf.format(date);
     }
     protected void verifyAccount(long accountId, String message)throws ResourceNotFoundException {
         Optional<Account> account = accountRepository.findById(accountId);
