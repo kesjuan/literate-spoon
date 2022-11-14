@@ -6,6 +6,7 @@ import com.yourNewBank.Banking.model.Deposit;
 import com.yourNewBank.Banking.model.Withdrawal;
 import com.yourNewBank.Banking.repository.AccountRepository;
 import com.yourNewBank.Banking.repository.WithdrawalRepository;
+import com.yourNewBank.enums.IMedium;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,14 @@ public class WithdrawalService {
         String finalDate = (String) stringDate.subSequence(0,endOfDate);
         withdrawal.setPayerId(accountId);
         withdrawal.setTransactionDate(finalDate);
-        withdrawalRepository.save(withdrawal);
+        Optional<Account> account = accountRepository.findById(accountId);
+        if (withdrawal.getMedium() == IMedium.Balance){
+            account.get().withdrawalBalance(withdrawal.getAmount());
+        }
+        if (withdrawal.getMedium() == IMedium.Rewards){
+            account.get().withdrawalRewards(withdrawal.getAmount());
+            withdrawalRepository.save(withdrawal);
+        }
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
     public ResponseEntity<?> updateWithdrawal(Long withdrawalId, Withdrawal withdrawal){

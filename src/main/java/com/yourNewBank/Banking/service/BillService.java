@@ -63,6 +63,7 @@ public class BillService {
         bill.setRecurringDate(date.getDate());
         int startOfMonthIndex = finalDate.indexOf("-");
         bill.setUpcomingPaymentDate(setUpcomingPaymentDate(bill));
+        bill.setPaymentDate(setUpcomingPaymentDate(bill));
 
         // need to set upcomingPaymentDate
         //bill.setUpcomingPaymentDate();

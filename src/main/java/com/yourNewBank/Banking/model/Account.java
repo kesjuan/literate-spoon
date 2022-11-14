@@ -21,7 +21,7 @@ public class Account {
     private String nickName;
     //
 
-    private Integer rewards;
+    private Double rewards;
 
     private Double balance;
 
@@ -60,11 +60,11 @@ public class Account {
         this.nickName = nickName;
     }
 
-    public Integer getRewards() {
+    public Double getRewards() {
         return rewards;
     }
 
-    public void setRewards(Integer rewards) {
+    public void setRewards(Double rewards) {
         this.rewards = rewards;
     }
 
@@ -91,4 +91,29 @@ public class Account {
     public void setCustomerId(Long customerId) {
         this.customerId = customerId;
     }
+
+    public void depositToBalance(double depositAmount){
+        if (depositAmount > 0 ){
+            setBalance(balance + depositAmount);
+        }
+    }
+    public void depositToRewards(double depositAmount){
+        if (depositAmount > 0 ){
+            setRewards( rewards+ depositAmount);
+        }
+
+    }
+    public void withdrawalBalance(double withdrawalAmount){
+        if (withdrawalAmount > 0) {
+            setBalance(balance - withdrawalAmount);
+        }
+    }
+    public void withdrawalRewards(double withdrawalAmount){
+        if (withdrawalAmount > 0 ){
+            setRewards( rewards -  withdrawalAmount);
+        }
+
+    }
+
+
 }

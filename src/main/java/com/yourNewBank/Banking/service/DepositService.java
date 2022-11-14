@@ -5,6 +5,7 @@ import com.yourNewBank.Banking.model.Account;
 import com.yourNewBank.Banking.model.Deposit;
 import com.yourNewBank.Banking.repository.AccountRepository;
 import com.yourNewBank.Banking.repository.DepositRepository;
+import com.yourNewBank.enums.IMedium;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,17 @@ public class DepositService {
         String finalDate = (String) stringDate.subSequence(0,endOfDate);
         deposit.setPayeeId(accountId);
         deposit.setTransactionDate(finalDate);
+        Optional<Account> account = accountRepository.findById(accountId);
+        if (deposit.getMedium() == IMedium.Balance){
+            account.get().depositToBalance(deposit.getAmount());
+        }
+        if (deposit.getMedium() == IMedium.Rewards){
+            account.get().depositToRewards(deposit.getAmount());
+        }
     depositRepository.save(deposit);
+
+
+
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
     public ResponseEntity<?> updateDeposit(Long depositId, Deposit deposit){
