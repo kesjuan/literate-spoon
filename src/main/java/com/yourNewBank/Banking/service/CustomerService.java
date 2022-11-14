@@ -2,6 +2,7 @@ package com.yourNewBank.Banking.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.yourNewBank.Banking.exception.ResourceNotFoundException;
 import com.yourNewBank.Banking.model.Account;
 import com.yourNewBank.Banking.model.Address;
 import com.yourNewBank.Banking.model.Customer;
@@ -34,6 +35,9 @@ public class CustomerService {
 
 
     public ResponseEntity<?> createCustomer(ObjectNode customer ){
+        if (customer.isEmpty()){
+           throw new ResourceNotFoundException("Error");
+        }
         Customer realCustomer = new Customer();
         realCustomer.setFirstName(customer.get("firstName").asText());
         realCustomer.setLastName(customer.get("lastName").asText());
@@ -54,11 +58,14 @@ public class CustomerService {
     }
 
     public ResponseEntity<?> getAllMyCustomers(){
+        verifyCustomers("Error fetching customers");
         return new ResponseEntity<>(customerRepository.findAll(),HttpStatus.OK);
     }
 
     public ResponseEntity<?> getCustomerByAccountId(Long accountId){
        Optional<Account> account = accountRepository.findById(accountId);
+       verifyAccount(accountId,"Error finding account");
+
        Long customerId = account.get().getCustomerId();
        Optional<Customer> customer =customerRepository.findById(customerId);
        return new ResponseEntity<>(customer,HttpStatus.OK);
@@ -72,17 +79,20 @@ public class CustomerService {
         return customer1;
     }
     public ResponseEntity<?> findAllOfThisCustomerAccounts(Long customerId){
-        //Optional<Customer> customer = customerRepository.findById(customerId);
 
+        //Optional<Customer> customer = customerRepository.findById(customerId);
+        verifyCustomer(customerId,"Error fetching customers accounts");
        Iterable<Account> account = accountRepository.getAccountsWithThisCustomerId(customerId);
        return new ResponseEntity<>(account,HttpStatus.OK);
     }
 
     public ResponseEntity<?> findCustomerById( Long customerId){
+        verifyCustomer(customerId,"Error fetching customer");
         return  new ResponseEntity<>(customerRepository.findById(customerId), HttpStatus.OK);
     }
 
     public ResponseEntity<?> updateCustomer(Long customerId, ObjectNode customer){
+        verifyCustomer(customerId,"Error finding Customer");
         Customer realCustomer = new Customer();
         realCustomer.setId(customerId);
         realCustomer.setFirstName(customer.get("firstName").asText());
@@ -104,5 +114,29 @@ public class CustomerService {
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
+    protected void verifyCustomer(long customerId, String message)throws ResourceNotFoundException {
+        Optional<Customer> customer = customerRepository.findById(customerId);
+        if (customer.isEmpty()){// if pollid doesnt exist in the database then 404 not found status will be thrown
+            // restExceptionHandler.handleResourceNotFoundException(new ResourceNotFoundException(),message);
+            throw new ResourceNotFoundException(message);
+        }            // ^^ custom class
+    }
+    protected void verifyCustomers(String message)throws ResourceNotFoundException {
+        Iterable<Customer> customers = customerRepository.findAll();
+        // ArrayList<Account> list = new ArrayList<>((Collection) account);
+        long size = customers.spliterator().getExactSizeIfKnown();
+        if (size == 0 ){// if pollid doesnt exist in the database then 404 not found status will be thrown
+            // restExceptionHandler.handleResourceNotFoundException(new ResourceNotFoundException(),message);
+            throw new ResourceNotFoundException(message);
+        }            // ^^ custom class
+    }
+    protected void verifyAccount(long accountId, String message)throws ResourceNotFoundException {
+        Optional<Account> account = accountRepository.findById(accountId);
+        if (account.isEmpty()){// if pollid doesnt exist in the database then 404 not found status will be thrown
+            // restExceptionHandler.handleResourceNotFoundException(new ResourceNotFoundException(),message);
+            throw new ResourceNotFoundException(message);
+        }            // ^^ custom class
+    }
+
 
 }

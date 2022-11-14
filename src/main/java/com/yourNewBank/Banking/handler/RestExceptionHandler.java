@@ -23,7 +23,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException rnfe){
         ErrorDetail errorDetail = new ErrorDetail();
         errorDetail.setCode(String.valueOf(HttpStatus.NOT_FOUND.value()));
-        errorDetail.setMessage("Error" + rnfe.getLocalizedMessage());
+        errorDetail.setMessage(rnfe.getLocalizedMessage());
         return new ResponseEntity<>(errorDetail,null,HttpStatus.NOT_FOUND);
     }
 }
