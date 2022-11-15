@@ -1,6 +1,7 @@
 package com.yourNewBank.Banking.service;
 
 import com.yourNewBank.Banking.exception.ResourceNotFoundException;
+import com.yourNewBank.Banking.handler.ResponseHandler;
 import com.yourNewBank.Banking.model.Account;
 import com.yourNewBank.Banking.model.Bill;
 import com.yourNewBank.Banking.model.Customer;
@@ -37,51 +38,78 @@ public class BillService {
 
     public ResponseEntity<?> findAllBillsForThisAccount( Long accountId){
     // have to make query in repo to find bills for specific account id
+
+        try{
             verifyAccount(accountId,"Error fetching Bills");
-        return new ResponseEntity<>(billRepository.getBillsWithAccountId(accountId),HttpStatus.OK);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", billRepository.getBillsWithAccountId(accountId));
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     public ResponseEntity<?> findBillById( Long billId){
-        verifyBill(billId,"Error fetching bill with id");
-        return new ResponseEntity<>(billRepository.findById(billId),HttpStatus.OK);
+        try{
+            verifyBill(billId,"Error fetching bill with id");
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", billRepository.findById(billId));
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
 
     public ResponseEntity<?> findBillByCustomer(Long customerId){
-        verifyCustomer(customerId,"Error fetching bills");
-        Iterable<Bill> bills =  billRepository.getBillsWithCustomerId(customerId);
-        //Iterable<Bill> bills = billRepository.findAllById((Iterable<Long>) billIds);
-        //have to make query in repo to find bills for specific customer Id
-        return new ResponseEntity<>(bills, HttpStatus.OK);
+        try{
+            verifyCustomer(customerId,"Error fetching bills");
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", billRepository.getBillsWithCustomerId(customerId));
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     public ResponseEntity<?> createBillForThisAccount( Long accountId, Bill bill){
-        verifyAccount(accountId,"Error creating bill: Account not found");
-        bill.setAccountId(accountId);
-        Date date = new Date();
-        String stringDate = date.toInstant().atZone(ZonedDateTime.now().getZone()).toString();
-        int endOfDate = stringDate.indexOf("T");
-        String finalDate = (String) stringDate.subSequence(0,endOfDate);
-        bill.setCreationDate(finalDate);
-        bill.setRecurringDate(date.getDate());
-        int startOfMonthIndex = finalDate.indexOf("-");
-        bill.setUpcomingPaymentDate(setUpcomingPaymentDate(bill));
-        bill.setPaymentDate(setUpcomingPaymentDate(bill));
+        try{
+            verifyAccount(accountId,"Error creating bill: Account not found");
+            bill.setAccountId(accountId);
+            Date date = new Date();
+            String stringDate = date.toInstant().atZone(ZonedDateTime.now().getZone()).toString();
+            int endOfDate = stringDate.indexOf("T");
+            String finalDate = (String) stringDate.subSequence(0,endOfDate);
+            bill.setCreationDate(finalDate);
+            bill.setRecurringDate(date.getDate());
+            int startOfMonthIndex = finalDate.indexOf("-");
+            bill.setUpcomingPaymentDate(setUpcomingPaymentDate(bill));
+            bill.setPaymentDate(setUpcomingPaymentDate(bill));
 
-        // need to set upcomingPaymentDate
-        //bill.setUpcomingPaymentDate();
-        Customer customer = customerService.getCustomerByAccountIdNotForController(accountId);
-        bill.setNickName(customer.getFirstName() + "'s "+ "bill from " + bill.getPayee());
-        billRepository.save(bill);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+            // need to set upcomingPaymentDate
+            //bill.setUpcomingPaymentDate();
+            Customer customer = customerService.getCustomerByAccountIdNotForController(accountId);
+            bill.setNickName(customer.getFirstName() + "'s "+ "bill from " + bill.getPayee());
+            billRepository.save(bill);
+            return ResponseHandler.generateResponse(HttpStatus.CREATED, "Created bill and added it to the account", bill);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     public ResponseEntity<?> updateBillById( Long billId, Bill bill){
-        verifyBill(billId,"Bill id does not exist");
+        try{
+            verifyBill(billId,"Bill id does not exist");
             bill.setId(billId);
             billRepository.save(bill);
-        return new ResponseEntity<>(HttpStatus.OK);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Accepted bill modification");
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     public ResponseEntity<?> deleteBillById(Long billId){
-        verifyBill(billId,"Bill id does not exist");
-        billRepository.deleteById(billId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        try{
+            verifyBill(billId,"Bill id does not exist");
+            billRepository.deleteById(billId);
+            return new ResponseEntity<> (HttpStatus.NO_CONTENT);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
     public String setUpcomingPaymentDate(Bill bill){
         Date date = new Date();
