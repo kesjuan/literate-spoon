@@ -3,6 +3,7 @@ package com.yourNewBank.Banking.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.yourNewBank.Banking.exception.ResourceNotFoundException;
+import com.yourNewBank.Banking.handler.ResponseHandler;
 import com.yourNewBank.Banking.model.Account;
 import com.yourNewBank.Banking.model.Address;
 import com.yourNewBank.Banking.model.Customer;
@@ -35,40 +36,52 @@ public class CustomerService {
 
 
     public ResponseEntity<?> createCustomer(ObjectNode customer ){
-        if (customer.isEmpty()){
-           throw new ResourceNotFoundException("Error");
-        }
-        Customer realCustomer = new Customer();
-        realCustomer.setFirstName(customer.get("firstName").asText());
-        realCustomer.setLastName(customer.get("lastName").asText());
+        try{
+            if (customer.isEmpty()){
+                throw new ResourceNotFoundException("Error");
+            }
+            Customer realCustomer = new Customer();
+            realCustomer.setFirstName(customer.get("firstName").asText());
+            realCustomer.setLastName(customer.get("lastName").asText());
 
-        JsonNode address = customer.get("address");
-        Address realAddress = new Address();
-        realAddress.setStreetNumber(address.findValue("street_number").asText());
-        realAddress.setStreetName(address.findValue("street_name").asText());
-        realAddress.setCity(address.findValue("city").asText());
-        realAddress.setState(address.findValue("state").asText());
-        realAddress.setZip(address.findValue("zip").asText());
-        addressRepository.save(realAddress);
-        realCustomer.setAddress(realAddress);
-        customerRepository.save(realCustomer);
+            JsonNode address = customer.get("address");
+            Address realAddress = new Address();
+            realAddress.setStreetNumber(address.findValue("street_number").asText());
+            realAddress.setStreetName(address.findValue("street_name").asText());
+            realAddress.setCity(address.findValue("city").asText());
+            realAddress.setState(address.findValue("state").asText());
+            realAddress.setZip(address.findValue("zip").asText());
+            addressRepository.save(realAddress);
+            realCustomer.setAddress(realAddress);
+            customerRepository.save(realCustomer);
             log.info("final address is "+ realAddress);
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Customer created", realCustomer);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
 
     public ResponseEntity<?> getAllMyCustomers(){
-        verifyCustomers("Error fetching customers");
-        return new ResponseEntity<>(customerRepository.findAll(),HttpStatus.OK);
+        try{
+            verifyCustomers("Error fetching customers");
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", customerRepository.findAll());
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
 
     public ResponseEntity<?> getCustomerByAccountId(Long accountId){
-       Optional<Account> account = accountRepository.findById(accountId);
-       verifyAccount(accountId,"Error finding account");
+        try{
+            verifyCustomers("Error finding customers");
+            Optional<Account> account = accountRepository.findById(accountId);
+           Long customerId = account.get().getCustomerId();
+           Optional<Customer> customer =customerRepository.findById(customerId);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", customer);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
 
-       Long customerId = account.get().getCustomerId();
-       Optional<Customer> customer =customerRepository.findById(customerId);
-       return new ResponseEntity<>(customer,HttpStatus.OK);
     }
 
     public Customer getCustomerByAccountIdNotForController(Long accountId){
@@ -79,40 +92,53 @@ public class CustomerService {
         return customer1;
     }
     public ResponseEntity<?> findAllOfThisCustomerAccounts(Long customerId){
-
-        //Optional<Customer> customer = customerRepository.findById(customerId);
-        verifyCustomer(customerId,"Error fetching customers accounts");
-       Iterable<Account> account = accountRepository.getAccountsWithThisCustomerId(customerId);
-       return new ResponseEntity<>(account,HttpStatus.OK);
+        try{
+            verifyCustomer(customerId,"Error fetching customers accounts");
+            Iterable<Account> account = accountRepository.getAccountsWithThisCustomerId(customerId);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", account);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
 
     public ResponseEntity<?> findCustomerById( Long customerId){
-        verifyCustomer(customerId,"Error fetching customer");
-        return  new ResponseEntity<>(customerRepository.findById(customerId), HttpStatus.OK);
+        try{
+            verifyCustomer(customerId,"Error fetching customer");
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", customerRepository.findById(customerId));
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
 
     public ResponseEntity<?> updateCustomer(Long customerId, ObjectNode customer){
-        verifyCustomer(customerId,"Error finding Customer");
-        Customer realCustomer = new Customer();
-        realCustomer.setId(customerId);
-        realCustomer.setFirstName(customer.get("firstName").asText());
-        realCustomer.setLastName(customer.get("lastName").asText());
+        try{
+            verifyCustomer(customerId,"Error fetching customer");
+            verifyCustomer(customerId,"Error finding Customer");
+            Customer realCustomer = new Customer();
+            realCustomer.setId(customerId);
+            realCustomer.setFirstName(customer.get("firstName").asText());
+            realCustomer.setLastName(customer.get("lastName").asText());
 
-        JsonNode address = customer.get("address");
-        Address realAddress = new Address();
-        Long addyId = customerRepository.findById(customerId).get().getAddress().getId();
-        realAddress.setId(addyId);
-        realAddress.setStreetNumber(address.findValue("street_number").asText());
-        realAddress.setStreetName(address.findValue("street_name").asText());
-        realAddress.setCity(address.findValue("city").asText());
-        realAddress.setState(address.findValue("state").asText());
-        realAddress.setZip(address.findValue("zip").asText());
-        addressRepository.save(realAddress);
-        realCustomer.setAddress(realAddress);
-        customerRepository.save(realCustomer);
-        log.info("final address is "+ realAddress);
+            JsonNode address = customer.get("address");
+            Address realAddress = new Address();
+            Long addyId = customerRepository.findById(customerId).get().getAddress().getId();
+            realAddress.setId(addyId);
+            realAddress.setStreetNumber(address.findValue("street_number").asText());
+            realAddress.setStreetName(address.findValue("street_name").asText());
+            realAddress.setCity(address.findValue("city").asText());
+            realAddress.setState(address.findValue("state").asText());
+            realAddress.setZip(address.findValue("zip").asText());
+            addressRepository.save(realAddress);
+            realCustomer.setAddress(realAddress);
+            customerRepository.save(realCustomer);
+            log.info("final address is "+ realAddress);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Customer updated");
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
 
-        return new ResponseEntity<>(HttpStatus.CREATED);
+
     }
     protected void verifyCustomer(long customerId, String message)throws ResourceNotFoundException {
         Optional<Customer> customer = customerRepository.findById(customerId);
