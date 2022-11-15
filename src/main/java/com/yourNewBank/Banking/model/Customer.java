@@ -26,7 +26,7 @@ public class Customer {
     @OneToMany
    // @JoinColumn(name = "address_id")
     // will need to be set
-    private ArrayList<Address> address;
+    private Address[] address;
 
     public Customer() {
     }
@@ -64,11 +64,11 @@ public class Customer {
 //    }
 
 
-    public ArrayList<Address> getAddress() {
+    public Address[] getAddress() {
         return address;
     }
 
-    public void setAddress(ArrayList<Address> address) {
+    public void setAddress(Address[] address) {
         this.address = address;
     }
 
