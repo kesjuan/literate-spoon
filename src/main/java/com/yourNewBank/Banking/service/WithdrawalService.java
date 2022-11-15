@@ -52,12 +52,13 @@ public class WithdrawalService {
             withdrawal.setPayerId(accountId);
             withdrawal.setTransactionDate(finalDate);
             Optional<Account> account = accountRepository.findById(accountId);
+            withdrawalRepository.save(withdrawal);
             if (withdrawal.getMedium() == IMedium.Balance){
                 account.get().withdrawalBalance(withdrawal.getAmount());
             }
             if (withdrawal.getMedium() == IMedium.Rewards){
                 account.get().withdrawalRewards(withdrawal.getAmount());
-                withdrawalRepository.save(withdrawal);
+
             }
             return ResponseHandler.generateResponse(HttpStatus.CREATED, "Withdrawal created", withdrawal);
         }catch(ResourceNotFoundException e){
