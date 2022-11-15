@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -23,10 +25,10 @@ public class Customer {
 
 //    @JsonIgnore
    // @OneToMany
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
    // @JoinColumn(name = "address_id")
     // will need to be set
-    private Address[] address;
+    private List<Address> address;
 
     public Customer() {
     }
@@ -64,11 +66,11 @@ public class Customer {
 //    }
 
 
-    public Address[] getAddress() {
+    public List<Address> getAddress() {
         return address;
     }
 
-    public void setAddress(Address[] address) {
+    public void setAddress(List<Address> address) {
         this.address = address;
     }
 

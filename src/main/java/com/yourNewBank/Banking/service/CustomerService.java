@@ -37,7 +37,7 @@ public class CustomerService {
 
     public ResponseEntity<?> createCustomer(Customer customer ){
         try{
-            verifyCustomer(customer.getId(), "Error");
+            verifyCustomer(customer, "Error");
             customerRepository.save(customer);
             return ResponseHandler.generateResponse(HttpStatus.OK, "Customer created", customer);
         }catch(ResourceNotFoundException e){
@@ -126,6 +126,12 @@ public class CustomerService {
         Optional<Account> account = accountRepository.findById(accountId);
         if (account.isEmpty()){// if pollid doesnt exist in the database then 404 not found status will be thrown
             // restExceptionHandler.handleResourceNotFoundException(new ResourceNotFoundException(),message);
+            throw new ResourceNotFoundException(message);
+        }            // ^^ custom class
+    }
+    protected void verifyCustomer(Customer customer, String message)throws ResourceNotFoundException {
+
+        if (customer == null){
             throw new ResourceNotFoundException(message);
         }            // ^^ custom class
     }
