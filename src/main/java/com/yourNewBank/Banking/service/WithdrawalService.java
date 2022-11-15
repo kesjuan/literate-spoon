@@ -1,6 +1,7 @@
 package com.yourNewBank.Banking.service;
 
 import com.yourNewBank.Banking.exception.ResourceNotFoundException;
+import com.yourNewBank.Banking.handler.ResponseHandler;
 import com.yourNewBank.Banking.model.Account;
 import com.yourNewBank.Banking.model.Deposit;
 import com.yourNewBank.Banking.model.Withdrawal;
@@ -24,43 +25,67 @@ public class WithdrawalService {
     private AccountRepository accountRepository;
 
     public ResponseEntity<?> findAllWithdrawalsForAccount(Long accountId){
-        verifyAccount(accountId,"Account not found");
-        Iterable<Withdrawal> withdrawals = withdrawalRepository.findWithdrawalsForAccount(accountId);
+        try{
+            verifyAccount(accountId,"Account not found");
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", withdrawalRepository.findWithdrawalsForAccount(accountId));
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
 
-        return new ResponseEntity<>(withdrawals, HttpStatus.OK);
     }
     public ResponseEntity<?> findWithdrawalById( Long withdrawalId){
-        verifyWithdrawal(withdrawalId,"Error fetching withdrawal with id");
-        return new ResponseEntity<>(withdrawalRepository.findById(withdrawalId),HttpStatus.OK);
+        try{
+            verifyWithdrawal(withdrawalId,"Error fetching withdrawal with id");
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", withdrawalRepository.findById(withdrawalId));
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     public ResponseEntity<?> createWithdrawal( Long accountId,  Withdrawal withdrawal){
-        verifyAccount(accountId,"Error creating withdrawal: Account not found");
-        Date date = new Date();
-        String stringDate = date.toInstant().atZone(ZonedDateTime.now().getZone()).toString();
-        int endOfDate = stringDate.indexOf("T");
-        String finalDate = (String) stringDate.subSequence(0,endOfDate);
-        withdrawal.setPayerId(accountId);
-        withdrawal.setTransactionDate(finalDate);
-        Optional<Account> account = accountRepository.findById(accountId);
-        if (withdrawal.getMedium() == IMedium.Balance){
-            account.get().withdrawalBalance(withdrawal.getAmount());
+        try{
+            verifyAccount(accountId,"Error creating withdrawal: Account not found");
+            Date date = new Date();
+            String stringDate = date.toInstant().atZone(ZonedDateTime.now().getZone()).toString();
+            int endOfDate = stringDate.indexOf("T");
+            String finalDate = (String) stringDate.subSequence(0,endOfDate);
+            withdrawal.setPayerId(accountId);
+            withdrawal.setTransactionDate(finalDate);
+            Optional<Account> account = accountRepository.findById(accountId);
+            if (withdrawal.getMedium() == IMedium.Balance){
+                account.get().withdrawalBalance(withdrawal.getAmount());
+            }
+            if (withdrawal.getMedium() == IMedium.Rewards){
+                account.get().withdrawalRewards(withdrawal.getAmount());
+                withdrawalRepository.save(withdrawal);
+            }
+            return ResponseHandler.generateResponse(HttpStatus.CREATED, "Withdrawal created", withdrawal);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
         }
-        if (withdrawal.getMedium() == IMedium.Rewards){
-            account.get().withdrawalRewards(withdrawal.getAmount());
-            withdrawalRepository.save(withdrawal);
-        }
-        return new ResponseEntity<>(HttpStatus.CREATED);
+
+
     }
     public ResponseEntity<?> updateWithdrawal(Long withdrawalId, Withdrawal withdrawal){
-        verifyWithdrawal(withdrawalId,"Withdrawal id does not exist");
-        withdrawal.setId(withdrawalId);
-        withdrawalRepository.save(withdrawal);
-        return new ResponseEntity<>(HttpStatus.OK);
+        try{
+            verifyWithdrawal(withdrawalId,"Withdrawal id does not exist");
+            withdrawal.setId(withdrawalId);
+            withdrawalRepository.save(withdrawal);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Withdrawal updated", withdrawal);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     public ResponseEntity<?> deleteWithdrawalById( Long withdrawalId){
-        verifyWithdrawal(withdrawalId,"Withdrawal id does not exist");
-        withdrawalRepository.deleteById(withdrawalId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        try{
+            verifyWithdrawal(withdrawalId,"Withdrawal id does not exist");
+            withdrawalRepository.deleteById(withdrawalId);
+            return new ResponseEntity<> (HttpStatus.NO_CONTENT);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     protected void verifyAccount(long accountId, String message)throws ResourceNotFoundException {
         Optional<Account> account = accountRepository.findById(accountId);
