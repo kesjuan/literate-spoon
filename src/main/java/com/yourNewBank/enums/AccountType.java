@@ -1,7 +1,7 @@
 package com.yourNewBank.enums;
 
 public enum AccountType {
-    CHECKING("Checking Account"), SAVINGS("Savings Account"), CREDIT("Credit Account");
+    Checking("Checking Account"), Savings("Savings Account"), Credit("Credit Account");
 private String typeOfAccount;
 
     AccountType(String s) {

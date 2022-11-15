@@ -46,5 +46,18 @@
 			</plugin>
 		</plugins>
 	</build>
-
+	<profiles>
+		<profile>
+			<id>1</id>
+<!--			<build>-->
+<!--				-->
+<!--			</build>-->
+		<properties>
+			<spring.profiles.active>
+				1
+			</spring.profiles.active>
+		</properties>
+		</profile>
+	 </profiles>
+	                     <packaging>war</packaging>
 </project>

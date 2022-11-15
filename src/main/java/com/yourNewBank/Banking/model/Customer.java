@@ -3,6 +3,7 @@ package com.yourNewBank.Banking.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Set;
 
 @Entity
@@ -22,10 +23,10 @@ public class Customer {
 
 //    @JsonIgnore
    // @OneToMany
-    @ManyToOne
-    @JoinColumn(name = "address_id")
+    @OneToMany
+   // @JoinColumn(name = "address_id")
     // will need to be set
-    private Address address;
+    private ArrayList<Address> address;
 
     public Customer() {
     }
@@ -63,11 +64,11 @@ public class Customer {
 //    }
 
 
-    public Address getAddress() {
+    public ArrayList<Address> getAddress() {
         return address;
     }
 
-    public void setAddress(Address address) {
+    public void setAddress(ArrayList<Address> address) {
         this.address = address;
     }
 
