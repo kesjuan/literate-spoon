@@ -98,6 +98,7 @@ public class CustomerService {
     public ResponseEntity<?> updateCustomer(Long customerId, Customer customer){
         try{
             verifyCustomer(customerId,"Error fetching customer");
+            customer.setId(customerId);
             customerRepository.save(customer);
             return ResponseHandler.generateResponse(HttpStatus.OK, "Customer updated");
         }catch(ResourceNotFoundException e){
