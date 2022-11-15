@@ -74,7 +74,6 @@ public class DepositService {
             verifyAccount(depositId,"Deposit id does not exist");
             deposit.setId(depositId);
             depositRepository.save(deposit);
-            //need to get  202 http status
             return ResponseHandler.generateResponse(HttpStatus.ACCEPTED, "Accepted deposit modification");
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
@@ -85,7 +84,6 @@ public class DepositService {
         try{
             verifyDeposit(depositId,"Deposit id does not exist");
             depositRepository.deleteById(depositId);
-            //need to get  202 http status
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
