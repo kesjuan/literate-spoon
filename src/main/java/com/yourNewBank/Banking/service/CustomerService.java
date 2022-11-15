@@ -35,27 +35,11 @@ public class CustomerService {
     private AddressRepository addressRepository;
 
 
-    public ResponseEntity<?> createCustomer(ObjectNode customer ){
+    public ResponseEntity<?> createCustomer(Customer customer ){
         try{
-            if (customer.isEmpty()){
-                throw new ResourceNotFoundException("Error");
-            }
-            Customer realCustomer = new Customer();
-            realCustomer.setFirstName(customer.get("firstName").asText());
-            realCustomer.setLastName(customer.get("lastName").asText());
-
-            JsonNode address = customer.get("address");
-            Address realAddress = new Address();
-            realAddress.setStreetNumber(address.findValue("street_number").asText());
-            realAddress.setStreetName(address.findValue("street_name").asText());
-            realAddress.setCity(address.findValue("city").asText());
-            realAddress.setState(address.findValue("state").asText());
-            realAddress.setZip(address.findValue("zip").asText());
-            addressRepository.save(realAddress);
-            realCustomer.setAddress(realAddress);
-            customerRepository.save(realCustomer);
-            log.info("final address is "+ realAddress);
-            return ResponseHandler.generateResponse(HttpStatus.OK, "Customer created", realCustomer);
+            verifyCustomer(customer.getId(), "Error");
+            customerRepository.save(customer);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Customer created", customer);
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
         }
@@ -111,28 +95,10 @@ public class CustomerService {
 
     }
 
-    public ResponseEntity<?> updateCustomer(Long customerId, ObjectNode customer){
+    public ResponseEntity<?> updateCustomer(Long customerId, Customer customer){
         try{
             verifyCustomer(customerId,"Error fetching customer");
-            verifyCustomer(customerId,"Error finding Customer");
-            Customer realCustomer = new Customer();
-            realCustomer.setId(customerId);
-            realCustomer.setFirstName(customer.get("firstName").asText());
-            realCustomer.setLastName(customer.get("lastName").asText());
-
-            JsonNode address = customer.get("address");
-            Address realAddress = new Address();
-            Long addyId = customerRepository.findById(customerId).get().getAddress().getId();
-            realAddress.setId(addyId);
-            realAddress.setStreetNumber(address.findValue("street_number").asText());
-            realAddress.setStreetName(address.findValue("street_name").asText());
-            realAddress.setCity(address.findValue("city").asText());
-            realAddress.setState(address.findValue("state").asText());
-            realAddress.setZip(address.findValue("zip").asText());
-            addressRepository.save(realAddress);
-            realCustomer.setAddress(realAddress);
-            customerRepository.save(realCustomer);
-            log.info("final address is "+ realAddress);
+            customerRepository.save(customer);
             return ResponseHandler.generateResponse(HttpStatus.OK, "Customer updated");
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());

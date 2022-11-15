@@ -14,8 +14,8 @@ public class CustomerController {
    private CustomerService customerService;
 
     @PostMapping("/customers")
-    public ResponseEntity<?> createNewCustomer(@RequestBody ObjectNode json){
-        return customerService.createCustomer(json);
+    public ResponseEntity<?> createNewCustomer(@RequestBody Customer customer){
+        return customerService.createCustomer(customer);
     }
 
     @GetMapping("/customers")
@@ -36,7 +36,7 @@ public class CustomerController {
         return customerService.findCustomerById(customerId);
     }
     @PutMapping("customers/{customerId}")
-    public ResponseEntity<?> updateThisCustomer(@PathVariable Long customerId, @RequestBody ObjectNode json){
-        return customerService.updateCustomer(customerId,json);
+    public ResponseEntity<?> updateThisCustomer(@PathVariable Long customerId, @RequestBody Customer customer){
+        return customerService.updateCustomer(customerId, customer);
     }
 }
