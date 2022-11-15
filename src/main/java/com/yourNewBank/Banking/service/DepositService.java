@@ -1,6 +1,7 @@
 package com.yourNewBank.Banking.service;
 
 import com.yourNewBank.Banking.exception.ResourceNotFoundException;
+import com.yourNewBank.Banking.handler.ResponseHandler;
 import com.yourNewBank.Banking.model.Account;
 import com.yourNewBank.Banking.model.Deposit;
 import com.yourNewBank.Banking.repository.AccountRepository;
@@ -27,46 +28,69 @@ public class DepositService {
     private AccountRepository accountRepository;
 
     public ResponseEntity<?> findAllDepositsForAccount(Long accountId){
-        verifyAccount(accountId,"Account not found");
-        Iterable<Deposit> deposit = depositRepository.findDepositsForAccount(accountId);
+        try{
+            verifyAccount(accountId,"Account not found");
+            Iterable<Deposit> deposit = depositRepository.findDepositsForAccount(accountId);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", deposit);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
 
-        return new ResponseEntity<>(deposit, HttpStatus.OK);
     }
     public ResponseEntity<?> findDepositById( Long depositId){
-        verifyDeposit(depositId,"Error fetching deposit with id");
-        return new ResponseEntity<>(depositRepository.findById(depositId),HttpStatus.OK);
+        try{
+            verifyDeposit(depositId,"Error fetching deposit with id");
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", depositRepository.findById(depositId));
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     public ResponseEntity<?> createDeposit( Long accountId,  Deposit deposit){
-        verifyAccount(accountId,"Error creating deposit: Account not found");
-        Date date = new Date();
-        String stringDate = date.toInstant().atZone(ZonedDateTime.now().getZone()).toString();
-        int endOfDate = stringDate.indexOf("T");
-        String finalDate = (String) stringDate.subSequence(0,endOfDate);
-        deposit.setPayeeId(accountId);
-        deposit.setTransactionDate(finalDate);
-        Optional<Account> account = accountRepository.findById(accountId);
-        if (deposit.getMedium() == IMedium.Balance){
-            account.get().depositToBalance(deposit.getAmount());
+        try{
+            verifyAccount(accountId,"Error creating deposit: Account not found");
+            Date date = new Date();
+            String stringDate = date.toInstant().atZone(ZonedDateTime.now().getZone()).toString();
+            int endOfDate = stringDate.indexOf("T");
+            String finalDate = (String) stringDate.subSequence(0,endOfDate);
+            deposit.setPayeeId(accountId);
+            deposit.setTransactionDate(finalDate);
+            Optional<Account> account = accountRepository.findById(accountId);
+            if (deposit.getMedium() == IMedium.Balance){
+                account.get().depositToBalance(deposit.getAmount());
+            }
+            if (deposit.getMedium() == IMedium.Rewards){
+                account.get().depositToRewards(deposit.getAmount());
+            }
+            depositRepository.save(deposit);
+            return ResponseHandler.generateResponse(HttpStatus.CREATED, "Created deposit and added it to the account", deposit);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
         }
-        if (deposit.getMedium() == IMedium.Rewards){
-            account.get().depositToRewards(deposit.getAmount());
-        }
-    depositRepository.save(deposit);
 
-
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
     }
     public ResponseEntity<?> updateDeposit(Long depositId, Deposit deposit){
-        verifyAccount(depositId,"Deposit id does not exist");
-        deposit.setId(depositId);
-        depositRepository.save(deposit);
-        return new ResponseEntity<>(HttpStatus.OK);
+        try{
+            verifyAccount(depositId,"Deposit id does not exist");
+            deposit.setId(depositId);
+            depositRepository.save(deposit);
+            //need to get  202 http status
+            return ResponseHandler.generateResponse(HttpStatus.ACCEPTED, "Accepted deposit modification");
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     public ResponseEntity<?> deleteDepositById( Long depositId){
-        verifyDeposit(depositId,"Deposit id does not exist");
-       depositRepository.deleteById(depositId);
-       return new ResponseEntity<>(HttpStatus.OK);
+        try{
+            verifyDeposit(depositId,"Deposit id does not exist");
+            depositRepository.deleteById(depositId);
+            //need to get  202 http status
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     protected void verifyAccount(long accountId, String message)throws ResourceNotFoundException {
         Optional<Account> account = accountRepository.findById(accountId);
