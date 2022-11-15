@@ -1,6 +1,7 @@
 package com.yourNewBank.Banking.service;
 
 import com.yourNewBank.Banking.exception.ResourceNotFoundException;
+import com.yourNewBank.Banking.handler.ResponseHandler;
 import com.yourNewBank.Banking.handler.RestExceptionHandler;
 import com.yourNewBank.Banking.model.Account;
 import com.yourNewBank.Banking.model.Customer;
@@ -32,43 +33,58 @@ public class AccountService {
 
 
     public ResponseEntity<?> findAllAccounts(){
-        //if (){}
-        //verifyAccount();
-        verifyAccounts("Error fetching accounts");
-        return new ResponseEntity<>(accountRepository.findAll(), HttpStatus.OK);
+        try{
+            verifyAccounts("Error fetching accounts");
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", accountRepository.findAll());
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
 
     public ResponseEntity<?> findAccountsById(Long accountId){
-        verifyAccount(accountId,"Error fetching account");
-//       Optional<Account> account = accountRepository.findById(accountId);
-//       Optional<Customer> customer = customerRepository.findById(account.get().getCustomer().getId());
-//        CustomerDto customerDto = new CustomerDto(customer.get().getId(),customer.get().getFirstName(),customer.get().getLastName());
-//        AccountDto accountDto = new AccountDto(account.get().getId(),account.get().getType(),account.get().getNickName(),
-//                account.get().getRewards(),account.get().getBalance(),customerDto);
-        return new ResponseEntity<>(accountRepository.findById(accountId), HttpStatus.OK);
+        try {
+            verifyAccount(accountId,"Error fetching account");
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Success", accountRepository.findById(accountId));
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage() );
+        }
     }
 
     public ResponseEntity<?> createAccount(Long customerId, Account account){
-       Optional<Customer> customer = customerRepository.findById(customerId);
-      // account.setNickNameP();
-        verifyCustomer(customerId,"Error creating customers account");
-       account.setNickName(customer.get().getFirstName() + "'s " +account.getType().name().toLowerCase() + " account" );
-       accountRepository.save(account);
 
-//        customer.ifPresent(account::setCustomer);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        try {
+            verifyCustomer(customerId, "Error creating customers account");
+           Optional<Customer> customer = customerRepository.findById(customerId);
+           account.setNickName(customer.get().getFirstName() + "'s " + account.getType().name().toLowerCase() + " account");
+           accountRepository.save(account);
+           return ResponseHandler.generateResponse(HttpStatus.OK, "Account created", account);
+       }catch(ResourceNotFoundException e){
+           return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage() );
+       }
+
     }
     public ResponseEntity<?> updateAccount(Long accountId, Account account){
-        verifyAccount(accountId,"Error");
-        account.setId(accountId);
-        accountRepository.save(account);
-        return new ResponseEntity<>(HttpStatus.OK);
+        try{
+            verifyAccount(accountId,"Error");
+            account.setId(accountId);
+            accountRepository.save(account);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Customer account updated");
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
 
     public ResponseEntity<?> deleteThisAccount(Long accountId){
-        verifyAccount(accountId,"Account does not exist");
-        accountRepository.deleteById(accountId);
-        return new ResponseEntity<>(HttpStatus.MOVED_PERMANENTLY);
+        try{
+            verifyAccount(accountId,"Account does not exist");
+            accountRepository.deleteById(accountId);
+            return ResponseHandler.generateResponse(HttpStatus.OK, "Account successfully deleted");
+        }catch(ResourceNotFoundException e){
+            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+
     }
     protected void verifyAccount(long accountId, String message)throws ResourceNotFoundException {
         Optional<Account> account = accountRepository.findById(accountId);
