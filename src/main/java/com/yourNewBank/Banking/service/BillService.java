@@ -96,7 +96,7 @@ public class BillService {
             verifyBill(billId,"Bill id does not exist");
             bill.setId(billId);
             billRepository.save(bill);
-            return ResponseHandler.generateResponse(HttpStatus.OK, "Accepted bill modification");
+            return ResponseHandler.generateResponse(HttpStatus.ACCEPTED, "Accepted bill modification");
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
         }

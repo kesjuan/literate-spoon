@@ -39,7 +39,7 @@ public class CustomerService {
         try{
             verifyCustomer(customer, "Error");
             customerRepository.save(customer);
-            return ResponseHandler.generateResponse(HttpStatus.OK, "Customer created", customer);
+            return ResponseHandler.generateResponse(HttpStatus.CREATED, "Customer created", customer);
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
         }
@@ -100,7 +100,7 @@ public class CustomerService {
             verifyCustomer(customerId,"Error fetching customer");
             customer.setId(customerId);
             customerRepository.save(customer);
-            return ResponseHandler.generateResponse(HttpStatus.OK, "Customer updated");
+            return ResponseHandler.generateResponse(HttpStatus.ACCEPTED, "Customer updated");
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
         }

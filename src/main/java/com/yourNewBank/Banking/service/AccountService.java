@@ -58,7 +58,7 @@ public class AccountService {
            Optional<Customer> customer = customerRepository.findById(customerId);
            account.setNickName(customer.get().getFirstName() + "'s " + account.getType().name().toLowerCase() + " account");
            accountRepository.save(account);
-           return ResponseHandler.generateResponse(HttpStatus.OK, "Account created", account);
+           return ResponseHandler.generateResponse(HttpStatus.CREATED, "Account created", account);
        }catch(ResourceNotFoundException e){
            return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage() );
        }
@@ -69,7 +69,7 @@ public class AccountService {
             verifyAccount(accountId,"Error");
             account.setId(accountId);
             accountRepository.save(account);
-            return ResponseHandler.generateResponse(HttpStatus.OK, "Customer account updated");
+            return ResponseHandler.generateResponse(HttpStatus.ACCEPTED, "Customer account updated");
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
         }
@@ -80,7 +80,7 @@ public class AccountService {
         try{
             verifyAccount(accountId,"Account does not exist");
             accountRepository.deleteById(accountId);
-            return ResponseHandler.generateResponse(HttpStatus.OK, "Account successfully deleted");
+            return ResponseHandler.generateResponse(HttpStatus.NO_CONTENT, "Account successfully deleted");
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
         }
