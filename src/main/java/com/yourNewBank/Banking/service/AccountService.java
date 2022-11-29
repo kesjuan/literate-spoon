@@ -68,6 +68,9 @@ public class AccountService {
         try{
             verifyAccount(accountId,"Error");
             account.setId(accountId);
+            Optional<Customer> customer = customerRepository.findById(account.getCustomerId()) ;
+            account.setNickName(customer.get().getFirstName() + "'s " + account.getType().name().toLowerCase() + " account");
+
             accountRepository.save(account);
             return ResponseHandler.generateResponse(HttpStatus.ACCEPTED, "Customer account updated");
         }catch(ResourceNotFoundException e){

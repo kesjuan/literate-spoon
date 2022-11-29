@@ -79,6 +79,9 @@ public class CustomerService {
         try{
             verifyCustomer(customerId,"Error fetching customers accounts");
             Iterable<Account> account = accountRepository.getAccountsWithThisCustomerId(customerId);
+            if(account.spliterator().getExactSizeIfKnown() ==0){
+                return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, "There are no accounts associated with this customer");
+            }
             return ResponseHandler.generateResponse(HttpStatus.OK, "Success", account);
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());

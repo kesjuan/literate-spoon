@@ -7,6 +7,9 @@ import com.yourNewBank.Banking.model.Deposit;
 import com.yourNewBank.Banking.repository.AccountRepository;
 import com.yourNewBank.Banking.repository.DepositRepository;
 import com.yourNewBank.enums.IMedium;
+import com.yourNewBank.enums.TransactionType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +30,8 @@ public class DepositService {
     @Autowired
     private AccountRepository accountRepository;
 
+    private static final Logger log = LoggerFactory.getLogger(DepositService.class);
+
     public ResponseEntity<?> findAllDepositsForAccount(Long accountId){
         try{
             verifyAccount(accountId,"Account not found");
@@ -46,6 +51,20 @@ public class DepositService {
         }
 
     }
+
+
+    //not a postman method
+    //p2p method
+//    public void p2pTransaction(Long accountId, Deposit deposit){
+//        if (deposit.getType() == TransactionType.P2P){
+//            if(deposit.getAmount() > 0) {
+//                Double balanceOfPayee = deposit.getAmount() + accountRepository.findById(deposit.getPayeeId()).get().getBalance();
+//                Double balanceOfPayer = accountRepository.findById(accountId).get().getBalance() - deposit.getAmount();
+//                accountRepository.findById(deposit.getPayeeId()).get().setBalance(balanceOfPayee);
+//                accountRepository.findById(accountId).get().setBalance(balanceOfPayer);
+//            }
+//        }
+//    }
     public ResponseEntity<?> createDeposit( Long accountId,  Deposit deposit){
         try{
             verifyAccount(accountId,"Error creating deposit: Account not found");
@@ -53,14 +72,31 @@ public class DepositService {
             String stringDate = date.toInstant().atZone(ZonedDateTime.now().getZone()).toString();
             int endOfDate = stringDate.indexOf("T");
             String finalDate = (String) stringDate.subSequence(0,endOfDate);
-            deposit.setPayeeId(accountId);
+            //deposit.setPayeeId(accountId);
             deposit.setTransactionDate(finalDate);
-            Optional<Account> account = accountRepository.findById(accountId);
+           // Optional<Account> account = accountRepository.findById(accountId);
             if (deposit.getMedium() == IMedium.Balance){
-                account.get().depositToBalance(deposit.getAmount());
+                if (deposit.getType() == TransactionType.P2P){
+                    if(deposit.getAmount() > 0) {
+                        Long payeeId = deposit.getPayeeId();
+                        Double balanceOfPayee = accountRepository.findById(payeeId).get().getBalance() + deposit.getAmount();
+                        Double balanceOfPayer = accountRepository.findById(accountId).get().getBalance() - deposit.getAmount();
+                        accountRepository.findById(payeeId).get().setBalance(balanceOfPayee);
+                        accountRepository.findById(accountId).get().setBalance(balanceOfPayer);
+                        log.info("p2p if statement");
+                    }
+                }else if(deposit.getAmount() > 0){
+                    Double balance = accountRepository.findById(accountId).get().getBalance() + deposit.getAmount();
+                    accountRepository.findById(accountId).get().setBalance(balance);
+                    log.info("deposit if statement");
+                }
             }
-            if (deposit.getMedium() == IMedium.Rewards){
-                account.get().depositToRewards(deposit.getAmount());
+
+
+            if (deposit.getMedium() == IMedium.Rewards) {
+                if (deposit.getAmount() > 0) {
+                    accountRepository.findById(accountId).get().setRewards(accountRepository.findById(accountId).get().getRewards() + deposit.getAmount());
+                }
             }
             depositRepository.save(deposit);
             return ResponseHandler.generateResponse(HttpStatus.CREATED, "Created deposit and added it to the account", deposit);

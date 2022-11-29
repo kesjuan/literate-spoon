@@ -92,28 +92,20 @@ public class Account {
         this.customerId = customerId;
     }
 
-    public void depositToBalance(double depositAmount){
-        if (depositAmount > 0 ){
-            setBalance(balance + depositAmount);
-        }
-    }
-    public void depositToRewards(double depositAmount){
-        if (depositAmount > 0 ){
-            setRewards( rewards+ depositAmount);
-        }
-
-    }
-    public void withdrawalBalance(double withdrawalAmount){
-        if (withdrawalAmount > 0) {
-            setBalance(balance - withdrawalAmount);
-        }
-    }
-    public void withdrawalRewards(double withdrawalAmount){
-        if (withdrawalAmount > 0 ){
-            setRewards( rewards -  withdrawalAmount);
-        }
-
-    }
+//    public void depositToBalance(double depositAmount){
+//            setBalance(balance + depositAmount);
+//    }
+//    public void depositToRewards(double depositAmount){
+//            setRewards( rewards+ depositAmount);
+//
+//    }
+//    public void withdrawalBalance(double withdrawalAmount){
+//            setBalance(balance - withdrawalAmount);
+//    }
+//    public void withdrawalRewards(double withdrawalAmount){
+//            setRewards( rewards -  withdrawalAmount);
+//
+//    }
 
 
 }

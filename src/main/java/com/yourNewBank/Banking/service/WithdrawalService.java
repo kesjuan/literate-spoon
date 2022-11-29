@@ -8,6 +8,7 @@ import com.yourNewBank.Banking.model.Withdrawal;
 import com.yourNewBank.Banking.repository.AccountRepository;
 import com.yourNewBank.Banking.repository.WithdrawalRepository;
 import com.yourNewBank.enums.IMedium;
+import com.yourNewBank.enums.IStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,15 +52,27 @@ public class WithdrawalService {
             String finalDate = (String) stringDate.subSequence(0,endOfDate);
             withdrawal.setPayerId(accountId);
             withdrawal.setTransactionDate(finalDate);
-            Optional<Account> account = accountRepository.findById(accountId);
-            withdrawalRepository.save(withdrawal);
+           // Optional<Account> account = accountRepository.findById(accountId);
             if (withdrawal.getMedium() == IMedium.Balance){
-                account.get().withdrawalBalance(withdrawal.getAmount());
+                Double balance = accountRepository.findById(accountId).get().getBalance() - withdrawal.getAmount();
+                if(balance >= 0){
+                    accountRepository.findById(accountId).get().setBalance(balance);
+                }else if (balance < 0){
+                    withdrawal.setStatus(IStatus.Cancelled);
+                    withdrawalRepository.save(withdrawal);
+                    return ResponseHandler.generateResponse(HttpStatus.UNAUTHORIZED, "Sorry insufficient funds", withdrawal);
+                }
+            } else if (withdrawal.getMedium() == IMedium.Rewards){
+                Double rewards = accountRepository.findById(accountId).get().getRewards() - withdrawal.getAmount();
+                if(rewards >= 0){
+                    accountRepository.findById(accountId).get().setRewards(rewards);
+                }else if (rewards < 0){
+                    withdrawal.setStatus(IStatus.Cancelled);
+                    withdrawalRepository.save(withdrawal);
+                    return ResponseHandler.generateResponse(HttpStatus.UNAUTHORIZED, "Sorry insufficient funds", withdrawal);
+                }
             }
-            if (withdrawal.getMedium() == IMedium.Rewards){
-                account.get().withdrawalRewards(withdrawal.getAmount());
-
-            }
+            withdrawalRepository.save(withdrawal);
             return ResponseHandler.generateResponse(HttpStatus.CREATED, "Withdrawal created", withdrawal);
         }catch(ResourceNotFoundException e){
             return ResponseHandler.generateResponse(HttpStatus.NOT_FOUND, e.getMessage());

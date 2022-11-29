@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BillRepository extends CrudRepository<Bill, Long>{
 // have to make query in repo to find bills for specific account id
-    @Query(value = "select * from Bill where account_id = ?1",nativeQuery = true)
+    @Query(value = "select * from bill where bill.account_id = ?1",nativeQuery = true)
     public Iterable<Bill> getBillsWithAccountId(Long accountId);
 
     //have to make query in repo to find bills for specific customer Id

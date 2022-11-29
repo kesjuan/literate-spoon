@@ -80,8 +80,6 @@ public class BillService {
             bill.setUpcomingPaymentDate(setUpcomingPaymentDate(bill));
             bill.setPaymentDate(setUpcomingPaymentDate(bill));
 
-            // need to set upcomingPaymentDate
-            //bill.setUpcomingPaymentDate();
             Customer customer = customerService.getCustomerByAccountIdNotForController(accountId);
             bill.setNickName(customer.getFirstName() + "'s "+ "bill from " + bill.getPayee());
             billRepository.save(bill);
@@ -94,7 +92,12 @@ public class BillService {
     public ResponseEntity<?> updateBillById( Long billId, Bill bill){
         try{
             verifyBill(billId,"Bill id does not exist");
+            Optional<Bill> originalBill = billRepository.findById(billId);
             bill.setId(billId);
+            bill.setNickName(customerRepository.findById(accountRepository.findById(bill.getAccountId()).get().getCustomerId()).get().getFirstName() + "'s "+ "bill from " + bill.getPayee());
+            if(bill.getPaymentDate() == null){
+                bill.setPaymentDate(originalBill.get().getPaymentDate());
+            }
             billRepository.save(bill);
             return ResponseHandler.generateResponse(HttpStatus.ACCEPTED, "Accepted bill modification");
         }catch(ResourceNotFoundException e){
